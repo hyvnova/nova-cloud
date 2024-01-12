@@ -1,4 +1,4 @@
-import { delete_group, rename_group } from "$lib/server/group";
+import { delete_file, rename_file } from "$lib/server/files";
 import { json, type RequestHandler } from "@sveltejs/kit";
 
 
@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     if (!id || !action || (action === "rename" && !name)) {
         return json({
-            error: "Invalid parameters"
+            error: "Invalid parameters. Received: " + JSON.stringify(req_json) + "."
         }, { status: 400 })
     }
 
@@ -22,10 +22,10 @@ export const POST: RequestHandler = async ({ request }) => {
     switch (action) {
         case "delete":
             // Delete group
-            await delete_group(id);
+            await delete_file(id)
             break;
         case "rename":
-            await rename_group(id, name as string);
+            await rename_file(id, name as string)
             break;
         default:
             return json({

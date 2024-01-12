@@ -5,8 +5,8 @@
 	import type { GroupType } from '$lib/types';
 	import Toast from '$lib/components/Toast.svelte';
 	import toast from '$lib/stores/toast';
-	import Fa from 'svelte-fa';
-	import { faEdit, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+	import Edit from '$lib/components/Edit.svelte';
+	import { delete_group, rename_group } from '$lib/index';
 
 	export let data: PageServerData;
 
@@ -51,61 +51,29 @@
 	}
 
 	async function handle_group(action: string, group: GroupType) {
-		let res: Response;
-
 		switch (action) {
 			case 'rename':
-				const new_name = prompt('New name', group.name);
+				let new_name = await rename_group(group);
 				if (!new_name) {
-					alert("You need to enter a name");
 					break;
-				}
-
-				// request to update name
-				res = await fetch(`/api/group`, {
-					method: 'POST',
-					body: JSON.stringify({
-						id: group.id,
-						action,
-						name: new_name
-					})
-				});
-
-				if (res.status !== 200) {
-					alert('Something went wrong while renaming the group.');
-					break;
-				}
+				} // Error already handled
 
 				// Update list to reflect new name
 				group_list.update((list) => {
 					return list.map((g) => {
 						if (g.id === group.id) {
-							g.name = new_name;
+							g.name = new_name as string;
 						}
 						return g;
 					});
 				});
 
-				break; 
-
+				break;
 
 			case 'delete':
-				if (!confirm(`Are you sure you want to delete ${group.name}?`)) {
+				if (!(await delete_group(group))) {
 					break;
-				}
-
-				res = await fetch(`/api/group`, {
-					method: 'POST',
-					body: JSON.stringify({
-						id: group.id,
-						action
-					})
-				});
-
-				if (res.status !== 200) {
-					alert('Something went wrong while deleting the group.');
-					break;
-				}
+				} // Error already handled
 
 				// Remove from list
 				group_list.update((list) => {
@@ -113,7 +81,7 @@
 				});
 
 				break;
-			}
+		}
 	}
 </script>
 
@@ -151,22 +119,12 @@
 				<li class="flex justify-between items-center m-1 p-1 w-full hover:border-b hover:shadow-lg">
 					<h1 class="text-md">{group.name}</h1>
 
-					<!-- Edit buttons -->
-					<div class="flex justify-between items-center">
-						<button
-							class="p-2 mx-1 rounded-md shadow-md"
-							on:click|preventDefault={() => handle_group('rename', group)}
-						>
-							<Fa icon={faEdit} />
-						</button>
-
-						<button
-							class="p-2 mx-1 rounded-md shadow-md"
-							on:click|preventDefault={() => handle_group('delete', group)}
-						>
-							<Fa icon={faTrashCan} />
-						</button>
-					</div>
+					<Edit
+						handlers={{
+							rename: async () => await handle_group('rename', group),
+							delete: async () => await handle_group('delete', group)
+						}}
+					/>
 				</li>
 			</a>
 		{/each}

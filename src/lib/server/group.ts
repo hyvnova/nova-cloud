@@ -1,6 +1,6 @@
 import { db } from './db';
 import type { FileMetaType, GroupType } from '$lib/types'
-import { randomUUID } from 'crypto';
+import { v4 as uuid } from 'uuid';
 import { delete_files } from './files';
 ;
 
@@ -8,7 +8,7 @@ let collection = db.collection<GroupType>("groups");
 
 export async function create_group(name: string, files: FileMetaType[]) {
     const group = {
-        id: randomUUID(),
+        id: uuid(),
         name,
         files,
         groups: []

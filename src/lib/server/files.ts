@@ -1,6 +1,6 @@
 import { db } from './db'; // Import your database utility function
 import { GridFSBucket } from 'mongodb';
-import { randomUUID } from 'crypto';
+import { v4 as uuid } from 'uuid';
 import type { FileMetaType } from '$lib/types';
 
 const bucket = new GridFSBucket(db, {
@@ -16,7 +16,7 @@ export type FileType = {
 };
 
 async function upload_gridfs(file: File): Promise<string> {
-    const id = randomUUID();
+    const id = uuid();
 
     const uploadStream = bucket.openUploadStream(id, {
         contentType: file.type,
@@ -155,4 +155,19 @@ export async function delete_files(ids: string[]) {
     for (const file of files) {
         await bucket.delete(file._id);
     }
+}
+
+
+export async function rename_file(id: string, name: string) {
+    // Get mongodb file id
+    const cursor = bucket.find(
+        { filename: id },
+        { limit: 1 });
+
+    const file = await cursor.next();
+
+    if (!file) { return; }
+
+    // Rename file
+    await bucket.rename(file._id, name);
 }
