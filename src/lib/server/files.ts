@@ -15,14 +15,15 @@ export type FileType = {
     data: Buffer; // Optional for Binary upload
 };
 
+
 async function upload_gridfs(file: File): Promise<string> {
     const id = uuid();
 
     const uploadStream = bucket.openUploadStream(id, {
-        contentType: file.type,
         metadata: {
             name: file.name,
             size: file.size,
+            type: file.type,
         }
     });
 
@@ -76,11 +77,12 @@ export async function get_file(id: string): Promise<FileType | null> {
     const meta = file.metadata as {
         name: string;
         size: number;
+        type: string;
     }
 
     return {
         id,
-        type: file.contentType as string,
+        type: meta.type,
         name: meta.name,
         size: meta.size,
         data: data as Buffer,
@@ -111,11 +113,12 @@ export async function get_file_list(): Promise<FileMetaType[]> {
         const meta = file.metadata as {
             name: string;
             size: number;
+            type: string;
         }
 
         return {
             id: file.filename,
-            type: file.contentType as string,
+            type: meta.type,
             name: meta.name,
             size: meta.size,
         }
@@ -133,6 +136,8 @@ export async function delete_file(id: string) {
         { limit: 1 });
         
     const file = await cursor.next();
+
+    console.log("Deleting file", id, file); 
 
     if (!file) { return; }
 

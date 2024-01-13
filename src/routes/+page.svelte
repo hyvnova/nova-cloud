@@ -1,30 +1,29 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import type { PageServerData } from './$types';
-	import { upload_files } from '$lib/api_shortcut';
 	import type { GroupType } from '$lib/types';
 	import Toast from '$lib/components/Toast.svelte';
 	import toast from '$lib/stores/toast';
 	import Edit from '$lib/components/Edit.svelte';
-	import { delete_group, rename_group } from '$lib/index';
+	import { perform_action, upload_files } from '$lib/index';
 
 	export let data: PageServerData;
 
 	// Form
-	let files = writable<FileList | null>(null);
-	let file_input: HTMLInputElement;
+	let input_files = writable<FileList | null>(null);
+	let file_input_element: HTMLInputElement;
 	let group_name: string;
 
 	let group_list = writable(data.groups);
 
 	async function handle_upload() {
-		if (!$files) {
+		if (!$input_files) {
 			return;
 		}
 
 		const formData = new FormData();
 		formData.append('group', group_name);
-		for (const file of $files) {
+		for (const file of $input_files) {
 			formData.append('files', file);
 		}
 
@@ -46,14 +45,14 @@
 			return list;
 		});
 
-		file_input.files = null;
-		files.set(null);
+		file_input_element.files = null;
+		input_files.set(null);
 	}
 
 	async function handle_group(action: string, group: GroupType) {
 		switch (action) {
 			case 'rename':
-				let new_name = await rename_group(group);
+				let new_name = await perform_action('group rename', group.id);
 				if (!new_name) {
 					break;
 				} // Error already handled
@@ -71,7 +70,7 @@
 				break;
 
 			case 'delete':
-				if (!(await delete_group(group))) {
+				if (!(await perform_action('group delete', group.id))) {
 					break;
 				} // Error already handled
 
@@ -85,26 +84,37 @@
 	}
 </script>
 
-<main class="flex flex-col justify-center items-center w-screen p-4">
+<main class="flex flex-col justify-center items-center w-auto p-4 ">
 	<Toast />
 
 	<!-- upload files-->
 	<form
-		class="flex flex-col justify-center items-center w-10/12 h-auto bg-gray/80 rounded-md shadow-lg p-3 m-4 border"
+		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
 		on:submit|preventDefault={handle_upload}
 	>
-		<input type="text" name="group" placeholder="Group name" bind:value={group_name} required />
-
 		<input
-			type="file"
-			multiple
-			bind:files={$files}
-			accept="*"
-			name="file"
-			bind:this={file_input}
+			class="p-1 text-base"
+			type="text"
+			name="group"
+			placeholder="Group name"
+			bind:value={group_name}
 			required
 		/>
-		<button type="submit">Upload</button>
+
+		<div class="flex justify-center items-center w-full">
+			<input
+				class="text-base w-1/2"
+				style="margin-bottom: 0 !important;"
+				type="file"
+				multiple
+				bind:files={$input_files}
+				accept="*"
+				name="file"
+				bind:this={file_input_element}
+				required
+			/>
+			<button class="p-1 text-base w-1/2" type="submit"> Upload </button>
+		</div>
 	</form>
 
 	<ol

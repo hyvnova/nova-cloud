@@ -1,17 +1,28 @@
 <script>
-	import '@picocss/pico/css/pico.min.css';
-  import "../app.css";
+	import '@picocss/pico/css/pico.css';
+	import '../app.css';
+
+
+	import { fly } from 'svelte/transition';
+	import { cubicIn, cubicOut } from 'svelte/easing';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
+
+	export let data;
+
+	const duration = 300;
+	const delay = duration + 100;
+	const y = 10;
+
+	const transitionIn = { easing: cubicOut, y, duration, delay };
+	const transitionOut = { easing: cubicIn, y: -y, duration };
 </script>
 
-
-<div data-theme="dark">
-<slot />
+{#key data.pathname}
+<div
+	data-theme="dark"
+	class="mx-auto w-screen p-4 max-w-2xl"
+	in:fly|global={transitionIn} out:fly|global={transitionOut}
+>
+	<slot />
 </div>
-
-<style>
-	* {
-		font-family: 'Noto Color Emoji', 'Ubuntu', Arial, Helvetica, sans-serif;
-		background: inherit;
-		color: inherit;
-	}
-</style>
+{/key}
