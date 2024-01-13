@@ -1,6 +1,6 @@
 <script lang="ts">
 	import open_edit_store from '$lib/stores/open_edit';
-	import { faArrowLeft, faArrowRight, faEdit, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+	import { faBars, faX, faEdit, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 	import Fa from 'svelte-fa';
 	import { writable } from 'svelte/store';
 
@@ -48,7 +48,7 @@
 			open_edit_store.set(open);
 		}}
 	>
-		<Fa class="text-2xl" icon={faArrowRight} />
+		<Fa class="text-2xl" icon={faX} />
 	</button>
 
 	<!-- Open -->
@@ -66,6 +66,6 @@
 			open_edit_store.set(open);
 		}}
 	>
-		<Fa class="text-2xl" icon={faArrowLeft} />
+		<Fa class="text-2xl" icon={faBars} />
 	</button>
 </div>

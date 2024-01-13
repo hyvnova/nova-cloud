@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Fa from 'svelte-fa';
 	import type { PageServerData } from './$types';
-	import { faHome } from '@fortawesome/free-solid-svg-icons';
+	import { faHome, faSpinner } from '@fortawesome/free-solid-svg-icons';
 	import Edit from '$lib/components/Edit.svelte';
 	import { writable } from 'svelte/store';
 	import { redirect } from '@sveltejs/kit';
@@ -19,6 +19,9 @@
 	let input_files = writable<FileList | null>(null);
 	let file_input_element: HTMLInputElement;
 
+	let uploading = writable(false);
+
+
 	async function handle_upload() {
 		if (!$input_files) {
 			return;
@@ -32,7 +35,9 @@
 			formData.append('files', file);
 		}
 
+		uploading.set(true);
 		let new_files = await upload_files(formData);
+		uploading.set(false);
 
 		// Show error
 		if ('error' in new_files && new_files.error) {
@@ -131,7 +136,14 @@
 				bind:this={file_input_element}
 				required
 			/>
-			<button class="p-1 text-base w-1/2" type="submit"> Upload </button>
+
+			{#if $uploading}
+				<div class="w-1/2">
+					<Fa icon={faSpinner} class="animate-spin text-lg" />
+				</div>
+			{:else}
+				<button class="p-1 text-base w-1/2" type="submit"> Upload </button>
+			{/if}
 		</div>
 	</form>
 

@@ -7,6 +7,10 @@
 	import Edit from '$lib/components/Edit.svelte';
 	import { perform_action, upload_files } from '$lib/index';
 
+	import Fa from 'svelte-fa';
+	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+
+
 	export let data: PageServerData;
 
 	// Form
@@ -15,6 +19,8 @@
 	let group_name: string;
 
 	let group_list = writable(data.groups);
+
+	let uploading = writable(false);
 
 	async function handle_upload() {
 		if (!$input_files) {
@@ -27,7 +33,9 @@
 			formData.append('files', file);
 		}
 
+		uploading.set(true);
 		let group = await upload_files(formData);
+		uploading.set(false);
 
 		if ('error' in group && group.error) {
 			toast.set({
@@ -113,7 +121,14 @@
 				bind:this={file_input_element}
 				required
 			/>
-			<button class="p-1 text-base w-1/2" type="submit"> Upload </button>
+			{#if $uploading}
+				<div class="w-1/2">
+					<Fa icon={faSpinner} class="animate-spin text-lg" />
+	
+				</div>
+			{:else}
+				<button class="p-1 text-base w-1/2" type="submit"> Upload </button>
+			{/if}
 		</div>
 	</form>
 
