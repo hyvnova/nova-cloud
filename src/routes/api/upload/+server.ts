@@ -1,9 +1,8 @@
 /**
- * Handle message attachments upload
+ * Handle file upload
  * Takes FormData containing files and uploads them to the server
  *
  * @param {FormData} formData - FormData object containing files
- * @returns {Promise<AttachmentType[]>}
  */
 
 import { upload_file } from '$lib/server/files';

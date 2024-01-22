@@ -10,6 +10,16 @@ declare global {
 	}
 }
 
+declare module 'huge-uploader' {
+	export default class HugeUploader {
+		constructor(options: {
+			endpoint: string;
+			file: File;
+		});
+		on(event: string, callback: (body: { detail: any }) => void): void;
+	}
+}
+
 declare module '@fortawesome/free-solid-svg-icons/index.es' {
   export * from '@fortawesome/free-solid-svg-icons';
 }
