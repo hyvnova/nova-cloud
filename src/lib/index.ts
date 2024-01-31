@@ -1,4 +1,6 @@
 import type { FileMetaType, GroupType } from './types';
+
+// @ts-ignore
 import HugeUploader from 'huge-uploader';
 
 /**
@@ -8,26 +10,30 @@ import HugeUploader from 'huge-uploader';
  * * Otherwise, a new group will be created
  * - Will return a GroupType if successful
  */
-export async function upload_files(files: FormData) {
-	let [heavy_files, light_files] = Array.from(files.entries()).reduce(
-		// @ts-ignore
-		(acc: [File[], FormData], [key, value]) => {
-			// If file is larger than 5MB, add to heavy_files
-			if (value instanceof File && value.size > 5 * 1024 * 1024) {
-				acc[0].push(value);
-			} else {
-				acc[1].append(key, value);
-			}
-			return acc;
-		}
-	) as unknown as [File[], FormData];
+export async function upload_files(form: FormData) {
+	/**
+	 * form = {
+	 *     files: [File, File, ...],
+	 *     groud_id?: string
+	 *     group: string # group name
+	 * }	
+	 */
 
-	console.log({ heavy_files, light_files });
+	let heavy_files: File[] = [];
+	let light_files: File[] = [];
+
+	for (const value of form.getAll('files')) {
+		if (value instanceof File) {
+			if (value.size > 5 * 1024 * 1024) {
+				heavy_files.push(value);
+			} else {
+				light_files.push(value);
+			}
+		}
+	}
 
 	/**
 	 * * Handling heavy files (> 5MB)
-	 * - Large files will be uploaded through a separate endpoint
-	 *
 	 */
 
 	let uploaded_files: FileMetaType[] = [];
@@ -36,7 +42,11 @@ export async function upload_files(files: FormData) {
 	for (const value of heavy_files) {
 		let uploader = new HugeUploader({
 			endpoint: '/api/upload/heavy',
-			file: value
+			file: value,
+			headers: {
+				group: form.get('group') as string,
+				group_id: form.get('group_id') as string
+			}
 		});
 
         if (process.env.NODE_ENV === 'development') {
@@ -64,16 +74,35 @@ export async function upload_files(files: FormData) {
 	 * * Handling light files (< 5MB)
 	 */
 
+	let request_form = new FormData();
+	request_form.append('group', form.get('group') as string);
+	if (form.get('group_id')) request_form.append('group_id', form.get('group_id') as string);
+
+	for (const value of light_files) {
+		request_form.append('files', value);
+	}
+
 	let res = await fetch('/api/upload', {
 		method: 'POST',
-		body: light_files
-	});
+		body: request_form
+ 	});
 
 	if (!res.ok) {
 		console.log('Error uploading attachments', res);
 		return res.json() as Promise<{ error: string }>;
 	}
-	return res.json() as Promise<GroupType | FileMetaType[]>;
+
+	let json = await res.json() as FileMetaType[] | GroupType;
+
+	// If FileMetaType[], add to uploaded_files and return the list
+	if (Array.isArray(json)) {
+		uploaded_files.push(...json);
+		return uploaded_files;
+
+	// If GroupType, return group
+	} else {
+		return json;
+	}
 }
 
 export async function perform_action(

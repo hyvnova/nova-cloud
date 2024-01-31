@@ -29,6 +29,7 @@
 
 		const formData = new FormData();
 		formData.append('group', group_name);
+
 		for (const file of $input_files) {
 			formData.append('files', file);
 		}
@@ -53,6 +54,7 @@
 			return list;
 		});
 
+		// clear form
 		file_input_element.files = null;
 		input_files.set(null);
 	}

@@ -52,11 +52,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 	}
 
-	if (group_id) {
-		await group_add_files(group_id, result);
-		return json(result, { status: 200 });
-	} else {
+	// If creating a new group
+	if (!group_id) {
+		console.log('Creating new group');
 		const group = await create_group(group_name, result);
 		return json(group, { status: 200 });
 	}
+
+	// If adding to existing group 
+	let _group = await get_group(group_id);
+	// @ts-ignore
+	await group_add_files(group_id || _group.id, result);
+	return json(result, { status: 200 });
 };
