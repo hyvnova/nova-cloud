@@ -21,10 +21,9 @@ export const POST: RequestHandler = async ({ request }) => {
 	const formData = await request.formData();
 
 	const group_name = formData.get('group') as string; // Group name
-	const group_id = formData.get('group_id') as string | null; // If group_id is present, add files to existing group
+	let group_id = formData.get('group_id') as string | null; // If group_id is present, add files to existing group
 
 	const files = formData.getAll('files') as File[];
-	console.log('Files', files);
 
 	if (!files || files.length === 0 || !group_name) {
 		return json(
@@ -37,6 +36,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const result: FileMetaType[] = [];
 
+	group_id ||= (await get_group(group_name))?.id || null;
+	
 	// Upload files
 	for (const file of files) {
 		try {
@@ -60,8 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	// If adding to existing group 
-	let _group = await get_group(group_id);
 	// @ts-ignore
-	await group_add_files(group_id || _group.id, result);
+	await group_add_files(group_id, result);
 	return json(result, { status: 200 });
 };

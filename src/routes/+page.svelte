@@ -10,7 +10,6 @@
 	import Fa from 'svelte-fa';
 	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
-
 	export let data: PageServerData;
 
 	// Form
@@ -49,10 +48,20 @@
 			return;
 		}
 
-		group_list.update((list) => {
-			list.push(group as GroupType);
-			return list;
-		});
+		// if group is not a list of uploaded files
+		if (Array.isArray(group)) {
+			toast.set({
+				type: 'info',
+				title: 'Success',
+				duration: 3000,
+				message: `Uploaded ${group.length} files to ${group_name}!`
+			})
+		} else {
+			group_list.update((list) => {
+				list.push(group as GroupType);
+				return list;
+			});
+		}
 
 		// clear form
 		file_input_element.files = null;
@@ -94,7 +103,7 @@
 	}
 </script>
 
-<main class="flex flex-col justify-center items-center w-auto p-4 ">
+<main class="flex flex-col justify-center items-center w-auto p-4">
 	<Toast />
 
 	<!-- upload files-->
@@ -126,7 +135,6 @@
 			{#if $uploading}
 				<div class="w-1/2">
 					<Fa icon={faSpinner} class="animate-spin text-lg" />
-	
 				</div>
 			{:else}
 				<button class="p-1 text-base w-1/2" type="submit"> Upload </button>

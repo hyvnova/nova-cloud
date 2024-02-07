@@ -18,7 +18,7 @@ export async function upload_files(form: FormData) {
 	 *     group: string # group name
 	 * }	
 	 */
-
+	
 	let heavy_files: File[] = [];
 	let light_files: File[] = [];
 
@@ -37,7 +37,6 @@ export async function upload_files(form: FormData) {
 	 */
 
 	let uploaded_files: FileMetaType[] = [];
-    let group: GroupType | null = null;
 
 	for (const value of heavy_files) {
 		let uploader = new HugeUploader({
@@ -61,12 +60,13 @@ export async function upload_files(form: FormData) {
 
 		uploader.on('finish', (body: {detail: FileMetaType | GroupType}) => {
             console.log('Finished uploading file', body);    
-            // If GroupType, set group
-			if ('files' in body.detail) {
-				group = body.detail;
+            // If FileMetaType, add to uploaded_files, else add to group
+			if (Array.isArray(body.detail)) {
+				uploaded_files.push(...body.detail);
 			} else {
-				uploaded_files.push(body.detail);
-			}        
+				// @ts-ignore
+				uploaded_files.push(...body.detail.files as FileMetaType[]);
+			}      
         });
 	}
 

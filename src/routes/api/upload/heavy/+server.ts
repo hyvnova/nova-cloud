@@ -21,10 +21,11 @@ export const POST: RequestHandler = async ({ request }) => {
 	const formData = await request.formData();
 
 	const group_name = formData.get('group') as string; // Group name
-	const group_id = formData.get('group_id') as string | null; // If group_id is present, add files to existing group
+	let group_id = formData.get('group_id') as string | null; // If group_id is present, add files to existing group
 
 	const file = formData.get('file') as File; // File
-	console.log(formData);
+
+	group_id ||= (await get_group(group_name))?.id || null;
 
 	// If no file is present, return empty array
 	if (!file) {
