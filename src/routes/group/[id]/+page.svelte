@@ -15,12 +15,10 @@
 	let group_name = writable(data.name); // Store to update UI on rename
 	let files = writable(data.files);
 
-
 	let input_files = writable<FileList | null>(null);
 	let file_input_element: HTMLInputElement;
 
 	let uploading = writable(false);
-
 
 	async function handle_upload() {
 		if (!$input_files) {
@@ -52,7 +50,7 @@
 		}
 
 		files.update((list) => {
-			list.push(...new_files as FileMetaType[]);
+			list.push(...(new_files as FileMetaType[]));
 			return list;
 		});
 
@@ -118,7 +116,6 @@
 
 	<Toast />
 
-	
 	<!-- upload files-->
 	<form
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
@@ -147,7 +144,6 @@
 		</div>
 	</form>
 
-
 	<ol
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-4 m-4 border"
 	>
@@ -157,9 +153,21 @@
 
 		{#each $files as file}
 			<li class="flex w-full justify-between items-center m-1 p-1">
-				<a href="/file/{file.id}" class="hover:underline" target="_blank">
-					<p class="text-white text-md hover:text-gray-100">{file.name} - {file.type}</p>
+				<a href="/file/{file.id}" class="hover:underline truncate" target="_blank">
+					<p 
+						class="
+						text-white text-md hover:text-gray-100
+						"
+					>
+						{file.name} 
 				</a>
+					<p 
+						class="ml-4
+						text-white text-md hover:text-gray-100 
+						"
+					>
+						{file.type}
+					</p>
 
 				<Edit
 					handlers={{
