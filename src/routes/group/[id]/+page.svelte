@@ -9,6 +9,8 @@
 	import toast from '$lib/stores/toast';
 	import Toast from '$lib/components/Toast.svelte';
 	import type { FileMetaType } from '$lib/types';
+	import { onMount } from 'svelte';
+	import { bytesToSize, mimeToExt } from '.';
 
 	export let data: PageServerData;
 
@@ -96,6 +98,9 @@
 				: update_file_name(file_id as string, result as string); // Rename file
 		}
 	}
+
+	// On mount calculate total size of group
+	let total_size = $files.reduce((acc, file) => acc + file.size, 0);
 </script>
 
 <main class="flex flex-col justify-center items-center p-2 w-auto">
@@ -144,6 +149,9 @@
 		</div>
 	</form>
 
+	<h3 class="text-xl text-center">{$files.length} files - {bytesToSize(total_size)}</h3>
+
+	<!-- files -->
 	<ol
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-4 m-4 border"
 	>
@@ -153,21 +161,26 @@
 
 		{#each $files as file}
 			<li class="flex w-full justify-between items-center m-1 p-1">
+				<p class="text-white text-md hover:text-gray-100 truncate mr-2"
+					title={(file.size / 1024) / 1024 > 1 ? `${((file.size / 1024) / 1024).toFixed(2)} MB` : `${(file.size / 1024).toFixed(2)} KB`}
+				>{bytesToSize(file.size)}</p>
+
 				<a href="/file/{file.id}" class="hover:underline truncate" target="_blank">
-					<p 
+					<p
 						class="
 						text-white text-md hover:text-gray-100
 						"
 					>
-						{file.name} 
-				</a>
-					<p 
-						class="ml-4
-						text-white text-md hover:text-gray-100 
+						{file.name}
+					</p></a
+				>
+				<p
+					class="ml-2
+						text-white text-md hover:text-gray-100 truncate
 						"
-					>
-						{file.type}
-					</p>
+				>
+					{mimeToExt(file.type)}
+				</p>
 
 				<Edit
 					handlers={{
