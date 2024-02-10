@@ -39,6 +39,10 @@
 		let new_files = await upload_files(formData);
 		uploading.set(false);
 
+		// Clear input
+		file_input_element.files = null;
+		input_files.set(null);
+
 		// Show error
 		if ('error' in new_files && new_files.error) {
 			toast.set({
@@ -55,10 +59,6 @@
 			list.push(...(new_files as FileMetaType[]));
 			return list;
 		});
-
-		// Clear input
-		file_input_element.files = null;
-		input_files.set(null);
 	}
 
 	function update_file_name(file_id: string, new_name: string) {
@@ -101,6 +101,11 @@
 
 	// On mount calculate total size of group
 	let total_size = $files.reduce((acc, file) => acc + file.size, 0);
+
+	files.subscribe((list) => {
+		total_size = list.reduce((acc, file) => acc + file.size, 0);
+	});
+
 </script>
 
 <main class="flex flex-col justify-center items-center p-2 w-auto">

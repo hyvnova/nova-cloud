@@ -47,6 +47,10 @@
 
 			return;
 		}
+		
+		// clear form
+		file_input_element.files = null;
+		input_files.set(null);
 
 		// if group is not a list of uploaded files
 		if (Array.isArray(group)) {
@@ -62,10 +66,6 @@
 				return list;
 			});
 		}
-
-		// clear form
-		file_input_element.files = null;
-		input_files.set(null);
 	}
 
 	async function handle_group(action: string, group: GroupType) {
