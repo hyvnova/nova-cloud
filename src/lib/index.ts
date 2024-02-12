@@ -24,7 +24,8 @@ export async function upload_files(form: FormData) {
 
 	for (const value of form.getAll('files')) {
 		if (value instanceof File) {
-			if (value.size > 5 * 1024 * 1024) {
+			// TODO: Fix heavy upload, for now limit will be 10MB  
+			if (value.size > 10 * 1024 * 1024) {
 				heavy_files.push(value);
 			} else {
 				light_files.push(value);
