@@ -34,7 +34,6 @@
 		"@fortawesome/free-solid-svg-icons": "^6.5.1",
 		"@picocss/pico": "^1.5.11",
 		"dotenv": "^16.3.1",
-		"huge-uploader": "^1.0.6",
 		"mongodb": "^6.3.0",
 		"uuid": "^9.0.1"
 	}

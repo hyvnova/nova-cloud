@@ -1,8 +1,5 @@
 import type { FileMetaType, GroupType } from './types';
 
-// @ts-ignore
-import HugeUploader from 'huge-uploader';
-
 /**
  * Upload/add files to a group
  * * If `group_id` is provided, files will be added to that group
