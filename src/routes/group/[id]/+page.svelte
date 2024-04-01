@@ -42,7 +42,6 @@
 		// clear form
 		input_files.set(null);
 
-
 		let form_files = form.body as FileMetaType[];
 
 		toast.set({
@@ -51,19 +50,16 @@
 			duration: 3000,
 			message: `Uploaded ${form_files.length} files to ${form.group_name}!`
 		});
-		
+
 		// Add files to UI
 		files.update((list) => {
 			list.push(...(form_files as FileMetaType[]));
 			return list;
 		});
-
 	}
 	$: if (form) {
 		after_submit(form);
 	}
-
-
 
 	function update_file_name(file_id: string, new_name: string) {
 		files.update((list) => {
@@ -109,7 +105,6 @@
 	files.subscribe((list) => {
 		total_size = list.reduce((acc, file) => acc + file.size, 0);
 	});
-
 </script>
 
 <main class="flex flex-col justify-center items-center p-2 w-auto">
@@ -172,19 +167,24 @@
 
 		{#each $files as file}
 			<li class="flex w-full justify-between items-center m-1 p-1">
-				<p class="text-white text-md hover:text-gray-100 truncate mr-2"
-					title={(file.size / 1024) / 1024 > 1 ? `${((file.size / 1024) / 1024).toFixed(2)} MB` : `${(file.size / 1024).toFixed(2)} KB`}
-				>{bytesToSize(file.size)}</p>
+				<p
+					class="text-white text-md hover:text-gray-100 truncate mr-2"
+					title={file.size / 1024 / 1024 > 1
+						? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+						: `${(file.size / 1024).toFixed(2)} KB`}
+				>
+					{bytesToSize(file.size)}
+				</p>
 
-				<a href={file.id} class="hover:underline truncate" target="_blank">
+				<a href="/file/{file.id}" class="hover:underline truncate" target="_blank">
 					<p
 						class="
 						text-white text-md hover:text-gray-100
 						"
 					>
 						{file.name}
-					</p></a
-				>
+					</p>
+				</a>
 				<p
 					class="ml-2
 						text-white text-md hover:text-gray-100 truncate
