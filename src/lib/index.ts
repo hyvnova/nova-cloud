@@ -1,4 +1,6 @@
 import type { FileMetaType, GroupType } from './types';
+import { put } from '@vercel/blob';
+
 
 /**
  * Upload/add files to a group
@@ -15,34 +17,70 @@ export async function upload_files(form: FormData) {
 	 *     group: string # group name
 	 * }	
 	 */
-
 	let files: File[] = form.getAll("files") as File[];
 
 
+	// @ts-ignore
+	let group: GroupType = {
+		id: form.get("grop_id") as string
+	};
+
 	// Form used when sending upload files request
-	let request_form = new FormData();
+	let request_json = {
+		group_name: form.get('group') as string,
+		group_id: form.get('group_id') as string,
+		files: [] as FileMetaType[]
+	};
 
-	// If there's a groud_id parameter use it. 
-	request_form.append('group', form.get('group') as string);
-	if (form.get('group_id')) request_form.append('group_id', form.get('group_id') as string);
+	// If no form_id create a new group
+	if (!form.get('group_id')) {
+		let res = await fetch('/api/create_group', {
+			method: 'POST',
+			headers: {
+    			'Content-Type': 'application/json'
+  			},
+			body: JSON.stringify({ name: form.get("group")})
+		});
 
-	for (const value of files) {
-		request_form.append('files', value);
+		if (!res.ok) {
+			console.error("Error creating group: " + form.get("group"))	
+			return (await res.json()) as { error: string };
+		}
+
+		let json = await res.json()
+		group = JSON.parse(json);
+		request_json.group_id = group.id
 	}
 
+	// Create blobs -- upload files to vercel blob
+	for (const file of files) {
+		const blob =  await put(`${group.id}/${file.name}`, file, { access: 'public' });
+		request_json.files.push({
+			id: `blob.url`,
+			name: file.name,
+			size: file.size,
+			type: file.type
+		});
+	}
+
+	// Make upload request
 	let res = await fetch('/api/upload', {
 		method: 'POST',
-		body: request_form
- 	});
+		headers: {
+    		'Content-Type': 'application/json'
+  		},
+		body: JSON.stringify(request_json)
+	});
 
 	if (!res.ok) {
 		console.log('Error uploading attachments', res);
-		return res.json() as Promise<{ error: string }>;
+		return (await res.json()) as { error: string };
 	}
 
-	let json = await res.json() as FileMetaType[] | GroupType;
+	let json = (await res.json()) as FileMetaType[] | GroupType;
 
 	return json;
+
 }
 
 export async function perform_action(

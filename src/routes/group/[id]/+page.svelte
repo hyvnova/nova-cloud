@@ -5,61 +5,65 @@
 	import Edit from '$lib/components/Edit.svelte';
 	import { writable } from 'svelte/store';
 	import { redirect } from '@sveltejs/kit';
-	import { perform_action, upload_files } from '$lib';
+	import { perform_action } from '$lib';
 	import toast from '$lib/stores/toast';
 	import Toast from '$lib/components/Toast.svelte';
 	import type { FileMetaType } from '$lib/types';
-	import { onMount } from 'svelte';
 	import { bytesToSize, mimeToExt } from '.';
+	import type { ActionData } from '../../$types';
 
 	export let data: PageServerData;
+	export let form: ActionData;
 
 	let group_name = writable(data.name); // Store to update UI on rename
 	let files = writable(data.files);
 
 	let input_files = writable<FileList | null>(null);
-	let file_input_element: HTMLInputElement;
 
 	let uploading = writable(false);
 
-	async function handle_upload() {
-		if (!$input_files) {
-			return;
-		}
+	// Handle form submission response
+	function after_submit(form: ActionData) {
+		if (!form) return;
 
-		const formData = new FormData();
-		formData.append('group', $group_name);
-		formData.append('group_id', data.id);
-
-		for (const file of $input_files) {
-			formData.append('files', file);
-		}
-
-		uploading.set(true);
-		let new_files = await upload_files(formData);
 		uploading.set(false);
 
-		// Clear input
-		file_input_element.files = null;
-		input_files.set(null);
-
-		// Show error
-		if ('error' in new_files && new_files.error) {
+		// If error
+		if (form.status !== 200) {
 			toast.set({
-				title: 'Error',
-				message: 'Something went wrong while uploading the files.',
 				type: 'error',
-				duration: 3000
+				title: 'Could not upload files to group',
+				duration: 5000,
+				message: 'Make sure all fields are filled properly.'
 			});
-
 			return;
 		}
 
+		// clear form
+		input_files.set(null);
+
+
+		let form_files = form.body as FileMetaType[];
+
+		toast.set({
+			type: 'info',
+			title: 'Success',
+			duration: 3000,
+			message: `Uploaded ${form_files.length} files to ${form.group_name}!`
+		});
+		
+		// Add files to UI
 		files.update((list) => {
-			list.push(...(new_files as FileMetaType[]));
+			list.push(...(form_files as FileMetaType[]));
 			return list;
 		});
+
 	}
+	$: if (form) {
+		after_submit(form);
+	}
+
+
 
 	function update_file_name(file_id: string, new_name: string) {
 		files.update((list) => {
@@ -100,7 +104,7 @@
 	}
 
 	// On mount calculate total size of group
-	let total_size = $files.reduce((acc, file) => acc + file.size, 0);
+	let total_size = $files ? $files.reduce((acc, file) => acc + file.size, 0) : 0;
 
 	files.subscribe((list) => {
 		total_size = list.reduce((acc, file) => acc + file.size, 0);
@@ -129,8 +133,11 @@
 	<!-- upload files-->
 	<form
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
-		on:submit|preventDefault={handle_upload}
+		action="/"
+		method="POST"
 	>
+		<input type="hidden" name="group_id" value={data.id} />
+
 		<div class="flex justify-center items-center w-full">
 			<input
 				class="text-base w-1/2"
@@ -139,8 +146,7 @@
 				multiple
 				bind:files={$input_files}
 				accept="*"
-				name="file"
-				bind:this={file_input_element}
+				name="files"
 				required
 			/>
 
@@ -170,7 +176,7 @@
 					title={(file.size / 1024) / 1024 > 1 ? `${((file.size / 1024) / 1024).toFixed(2)} MB` : `${(file.size / 1024).toFixed(2)} KB`}
 				>{bytesToSize(file.size)}</p>
 
-				<a href="/file/{file.id}" class="hover:underline truncate" target="_blank">
+				<a href={file.id} class="hover:underline truncate" target="_blank">
 					<p
 						class="
 						text-white text-md hover:text-gray-100

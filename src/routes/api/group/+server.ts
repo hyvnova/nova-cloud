@@ -1,4 +1,4 @@
-import { delete_group, group_remove_file, group_rename_file, rename_group } from '$lib/server/group';
+import { create_group, delete_group, group_remove_file, group_rename_file, rename_group } from '$lib/server/group';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 /**

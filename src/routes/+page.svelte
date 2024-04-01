@@ -1,72 +1,64 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import type { PageServerData } from './$types';
+	import type { ActionData, PageServerData } from './$types';
 	import type { GroupType } from '$lib/types';
 	import Toast from '$lib/components/Toast.svelte';
 	import toast from '$lib/stores/toast';
 	import Edit from '$lib/components/Edit.svelte';
-	import { perform_action, upload_files } from '$lib/index';
+	import { perform_action } from '$lib/index';
 
 	import Fa from 'svelte-fa';
 	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 	export let data: PageServerData;
+	export let form: ActionData;
 
-	// Form
-	let input_files = writable<FileList | null>(null);
-	let file_input_element: HTMLInputElement;
-	let group_name: string;
+	// Handle form submission response
+	function after_submit(form: ActionData) {
+		if (!form) return;
 
-	let group_list = writable(data.groups);
-
-	let uploading = writable(false);
-
-	async function handle_upload() {
-		if (!$input_files) {
-			return;
-		}
-
-		const formData = new FormData();
-		formData.append('group', group_name);
-
-		for (const file of $input_files) {
-			formData.append('files', file);
-		}
-
-		uploading.set(true);
-		let group = await upload_files(formData);
 		uploading.set(false);
 
-		if ('error' in group && group.error) {
+		// If error
+		if (form.status !== 200) {
 			toast.set({
-				title: 'Error',
-				message: 'Something went wrong while uploading the files.',
 				type: 'error',
-				duration: 3000
+				title: 'Could not upload files to group',
+				duration: 5000,
+				message: 'Make sure all fields are filled properly.'
 			});
-
 			return;
 		}
-		
+
 		// clear form
-		file_input_element.files = null;
 		input_files.set(null);
 
-		// if group is not a list of uploaded files
-		if (Array.isArray(group)) {
+		// if is a list of uploaded files
+		if (Array.isArray(form.body)) {
 			toast.set({
 				type: 'info',
 				title: 'Success',
 				duration: 3000,
-				message: `Uploaded ${group.length} files to ${group_name}!`
-			})
+				message: `Uploaded ${form.body.length} files to ${form.group_name}!`
+			});
+			// If is a group
 		} else {
 			group_list.update((list) => {
-				list.push(group as GroupType);
+				list.push(form?.body as GroupType);
 				return list;
 			});
 		}
 	}
+	$: if (form) {
+		after_submit(form);
+	}
+
+	// Form
+	let input_files = writable<FileList | null>(null);
+
+	let group_list = writable(data.groups);
+
+	let uploading = writable(false);
 
 	async function handle_group(action: string, group: GroupType) {
 		switch (action) {
@@ -109,14 +101,21 @@
 	<!-- upload files-->
 	<form
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
-		on:submit|preventDefault={handle_upload}
+		action="/"
+		method="POST"
+		enctype="multipart/form-data"
+		on:submit={() => uploading.set(true)}
 	>
+		{#if form?.missing}
+			<p class="text-red-500">Missing group name or files...</p>
+		{/if}
+
 		<input
 			class="p-1 text-base"
 			type="text"
-			name="group"
+			name="group_name"
 			placeholder="Group name"
-			bind:value={group_name}
+			value={form?.group_name ?? ''}
 			required
 		/>
 
@@ -128,8 +127,7 @@
 				multiple
 				bind:files={$input_files}
 				accept="*"
-				name="file"
-				bind:this={file_input_element}
+				name="files"
 				required
 			/>
 			{#if $uploading}

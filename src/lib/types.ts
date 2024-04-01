@@ -1,12 +1,12 @@
 import type { Writable } from "svelte/store";
 
+
 export type FileMetaType = {
     id: string,
     type: string, // mime type 
     name: string,
     size: number // in bytes
 }
-
 
 export type GroupType = {
     id: string,
