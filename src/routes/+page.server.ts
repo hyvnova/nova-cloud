@@ -5,14 +5,15 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	const groups = (await get_groups()) as unknown as GroupType[];
+	let groups = await get_groups()
+
 	return {
 		groups
 	};
 };
 
 export const actions = {
-	default: async ({ request }) => {
+	submit: async ({ request }) => {
 		// Handle file upload and/or group creation
 
 		const form = await request.formData();
@@ -67,7 +68,7 @@ export const actions = {
         } else {
             return {
                 status: 200,
-                body: uploaded_files_meta 
+                body: uploaded_files_meta
             };
         }
 

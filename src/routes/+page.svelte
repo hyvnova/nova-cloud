@@ -34,20 +34,18 @@
 		input_files.set(null);
 
 		// if is a list of uploaded files
-		if (Array.isArray(form.body)) {
-			toast.set({
-				type: 'info',
-				title: 'Success',
-				duration: 3000,
-				message: `Uploaded ${form.body.length} files to ${form.group_name}!`
-			});
-			// If is a group
-		} else {
+		if (!Array.isArray(form.body)) {
 			group_list.update((list) => {
 				list.push(form?.body as GroupType);
 				return list;
 			});
 		}
+		toast.set({
+			type: 'info',
+			title: 'Success',
+			duration: 3000,
+			message: `Files succesfully uploaded to ${form.group_name}!`
+		});
 	}
 	$: if (form) {
 		after_submit(form);
@@ -101,7 +99,7 @@
 	<!-- upload files-->
 	<form
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
-		action="/"
+		action="/?/submit"
 		method="POST"
 		enctype="multipart/form-data"
 		on:submit={() => uploading.set(true)}

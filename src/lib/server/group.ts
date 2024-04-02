@@ -6,7 +6,7 @@ let collection = db.collection<GroupType>('groups');
 
 export async function create_group(name: string) {
 	// Check if group already exists
-	let _group = await collection.findOne({ name }, { projection: { _id: 0 } });
+	let _group = await collection.findOne({ name }, { projection: { _id: 0 } }) as GroupType | null;
 	if (_group) {
 		return _group;
 	}
@@ -35,11 +35,12 @@ export async function get_group(identifier: string): Promise<GroupType | null> {
 }
 
 export async function get_groups() {
-	return await collection.find({}, { projection: { _id: 0 } }).toArray();
+	const groups = (await collection.find({}, { projection: { _id: 0 } }).toArray()) as GroupType[];
+	return groups;
 }
 
-export async function get_group_file_list(name: string): Promise<FileMetaType[]> {
-	const group = await get_group(name);
+export async function get_files_from_group(group_name: string): Promise<FileMetaType[]> {
+	const group = await get_group(group_name);
 	if (!group) {
 		return [];
 	}

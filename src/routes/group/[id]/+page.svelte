@@ -4,13 +4,13 @@
 	import { faHome, faSpinner } from '@fortawesome/free-solid-svg-icons';
 	import Edit from '$lib/components/Edit.svelte';
 	import { writable } from 'svelte/store';
-	import { redirect } from '@sveltejs/kit';
 	import { perform_action } from '$lib';
 	import toast from '$lib/stores/toast';
 	import Toast from '$lib/components/Toast.svelte';
 	import type { FileMetaType } from '$lib/types';
 	import { bytesToSize, mimeToExt } from '.';
 	import type { ActionData } from '../../$types';
+	import { goto } from '$app/navigation';
 
 	export let data: PageServerData;
 	export let form: ActionData;
@@ -84,7 +84,9 @@
 
 		// If deleting group -> redirect to home
 		if (action === 'group delete') {
-			throw redirect(302, '/');
+			if (await perform_action('group delete', group_id)) {
+				goto('/')
+			}
 		}
 		// If deleting file -> remove from UI
 		else if (action === 'file delete') {
