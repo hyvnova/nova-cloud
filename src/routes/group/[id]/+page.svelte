@@ -64,7 +64,8 @@
 	function update_file_name(file_id: string, new_name: string) {
 		files.update((list) => {
 			const index = list.findIndex((file) => file.id === file_id);
-			list[index].name = new_name;
+			const extension = list[index].name.split('.').pop();
+			list[index].name = `${new_name}.${extension}`;
 			return list;
 		});
 	}
@@ -109,13 +110,20 @@
 	});
 </script>
 
+
+<svelte:head>
+	<title>{$group_name} - NoVaCloud</title>
+	<meta name="description" content="Group: {$group_name} - NoVaCloud file cloud." />
+	<meta name="keywords" content="NovaCloud, Group, {$group_name}" />
+</svelte:head>
+
 <main class="flex flex-col justify-center items-center p-2 w-auto">
 	<nav class="flex justify-between items-center w-full px-4 mb-3">
 		<a href="/">
 			<Fa icon={faHome} class="text-2xl" />
 		</a>
 
-		<h1 class="text-2xl text-center">{$group_name}</h1>
+		<h1 class="text-2xl text-center p-1">{$group_name}</h1>
 
 		<Edit
 			handlers={{
@@ -170,7 +178,7 @@
 		{#each $files as file}
 			<li class="flex w-full justify-between items-center m-1 p-1">
 				<p
-					class="text-white text-md hover:text-gray-100 truncate mr-2"
+					class="text-white text-md hover:text-gray-100 truncate"
 					title={file.size / 1024 / 1024 > 1
 						? `${(file.size / 1024 / 1024).toFixed(2)} MB`
 						: `${(file.size / 1024).toFixed(2)} KB`}
@@ -187,13 +195,6 @@
 						{file.name}
 					</p>
 				</a>
-				<p
-					class="ml-2
-						text-white text-md hover:text-gray-100 truncate
-						"
-				>
-					{mimeToExt(file.type)}
-				</p>
 
 				<Edit
 					handlers={{

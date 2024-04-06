@@ -4,9 +4,9 @@ import { v4 as uuid } from 'uuid';
 import { delete_file, delete_files, rename_file } from './files';
 let collection = db.collection<GroupType>('groups');
 
-export async function create_group(name: string) {
+export async function create_group(name: string, files: FileMetaType[] = []): Promise<GroupType> {
 	// Check if group already exists
-	let _group = await collection.findOne({ name }, { projection: { _id: 0 } }) as GroupType | null;
+	let _group: GroupType | null = await collection.findOne({ name }, { projection: { _id: 0 } });
 	if (_group) {
 		return _group;
 	}
@@ -14,7 +14,7 @@ export async function create_group(name: string) {
 	const group = {
 		id: uuid(),
 		name,
-		files: [],
+		files: files,
 		groups: []
 	};
 
@@ -136,11 +136,11 @@ export async function group_add_files(group_id: string, files: FileMetaType[]) {
  * @param name
  */
 export async function group_rename_file(group_id: string, file_id: string, name: string) {
-	await rename_file(file_id, name);
+	const new_name = await rename_file(file_id, name);
 
 	// Update group
 	await collection.updateOne(
 		{ id: group_id, 'files.id': file_id },
-		{ $set: { 'files.$.name': name } }
+		{ $set: { 'files.$.name': new_name } }
 	);
 }

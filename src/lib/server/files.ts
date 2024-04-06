@@ -172,7 +172,13 @@ export async function rename_file(id: string, name: string) {
     const file = await cursor.next();
 
     if (!file) { return; }
+    
+
+    const file_ext = file.filename.split('.').pop();
+    let new_name = name + '.' + file_ext;
 
     // Rename file
-    await bucket.rename(file._id, name);
+    await bucket.rename(file._id, new_name);
+
+    return new_name;
 }

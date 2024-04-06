@@ -34,12 +34,13 @@
 		input_files.set(null);
 
 		// if is a list of uploaded files
-		if (!Array.isArray(form.body)) {
-			group_list.update((list) => {
-				list.push(form?.body as GroupType);
-				return list;
-			});
-		}
+		// if (!Array.isArray(form.body)) {
+		// 	group_list.update((list) => {
+		// 		list.push(form?.body as GroupType);
+		// 		return list;
+		// 	});
+		// }
+
 		toast.set({
 			type: 'info',
 			title: 'Success',
@@ -93,6 +94,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Home - NoVaCloud</title>
+	<meta name="description" content="NoVaCloud home page, group creation." />
+	<meta name="keywords" content="NoVaCloud, upload, files, share, cloud" />
+</svelte:head>
+
 <main class="flex flex-col justify-center items-center w-auto p-4">
 	<Toast />
 
@@ -109,6 +116,7 @@
 		{/if}
 
 		<input
+			aria-label="Group name"
 			class="p-1 text-base"
 			type="text"
 			name="group_name"
@@ -146,8 +154,11 @@
 		{/if}
 
 		{#each $group_list as group}
-			<a class="w-full" href="/group/{group.id}">
-				<li class="flex justify-between items-center m-1 p-1 w-full hover:border-b hover:shadow-lg">
+			<li class="w-full">
+				<a
+					class="flex justify-between items-center m-1 p-1 w-full hover:border-b hover:shadow-lg"
+					href="/group/{group.id}"
+				>
 					<h1 class="text-md">{group.name}</h1>
 
 					<Edit
@@ -156,8 +167,8 @@
 							delete: async () => await handle_group('delete', group)
 						}}
 					/>
-				</li>
-			</a>
+				</a>
+			</li>
 		{/each}
 	</ol>
 </main>

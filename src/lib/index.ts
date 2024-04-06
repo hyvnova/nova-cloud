@@ -103,6 +103,8 @@ export async function perform_action(
 		return false;
 	}
 
+
+	// Send request to server to perform action
 	let res = await fetch(`/api/group`, {
 		method: 'POST',
 		headers: {
