@@ -1,8 +1,6 @@
 import type { FileMetaType, GroupType } from './types';
-import { put } from '@vercel/blob';
 
-
-/**
+/*
  * Upload/add files to a group
  * * If `group_id` is provided, files will be added to that group
  * - Will return a FileMetaType[] if successful

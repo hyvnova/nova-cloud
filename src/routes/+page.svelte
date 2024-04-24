@@ -11,7 +11,7 @@
 	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 	export let data: PageServerData;
-	export let form: ActionData;
+	export let form: ActionData; 
 
 	// Handle form submission response
 	function after_submit(form: ActionData) {
@@ -33,13 +33,13 @@
 		// clear form
 		input_files.set(null);
 
-		// if is a list of uploaded files
-		// if (!Array.isArray(form.body)) {
-		// 	group_list.update((list) => {
-		// 		list.push(form?.body as GroupType);
-		// 		return list;
-		// 	});
-		// }
+		// If a new group was created, add it to the list
+		if (form.group) {
+			group_list.update((list) => {
+				list.push(form.group);
+				return list;
+			});
+		} 
 
 		toast.set({
 			type: 'info',
@@ -47,9 +47,6 @@
 			duration: 3000,
 			message: `Files succesfully uploaded to ${form.group_name}!`
 		});
-	}
-	$: if (form) {
-		after_submit(form);
 	}
 
 	// Form
@@ -92,6 +89,21 @@
 				break;
 		}
 	}
+
+	async function handle_submit(e) {
+		uploading.set(true);
+
+		let res = await fetch(e.target.action, {
+			method: 'POST',
+			body: new FormData(e.target)
+		})
+		
+		let data = await res.json();
+
+		form = data;
+		after_submit(data);
+	}
+
 </script>
 
 <svelte:head>
@@ -109,7 +121,7 @@
 		action="/?/submit"
 		method="POST"
 		enctype="multipart/form-data"
-		on:submit={() => uploading.set(true)}
+		on:submit|preventDefault={handle_submit}
 	>
 		{#if form?.missing}
 			<p class="text-red-500">Missing group name or files...</p>

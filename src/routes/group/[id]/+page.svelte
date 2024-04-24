@@ -42,7 +42,7 @@
 		// clear form
 		input_files.set(null);
 
-		let form_files = form.body as FileMetaType[];
+		let form_files = form.files as FileMetaType[];
 
 		toast.set({
 			type: 'info',
@@ -56,9 +56,6 @@
 			list.push(...(form_files as FileMetaType[]));
 			return list;
 		});
-	}
-	$: if (form) {
-		after_submit(form);
 	}
 
 	function update_file_name(file_id: string, new_name: string) {
@@ -108,6 +105,20 @@
 	files.subscribe((list) => {
 		total_size = list.reduce((acc, file) => acc + file.size, 0);
 	});
+
+	async function handle_submit(e) {
+		uploading.set(true);
+
+		let res = await fetch(e.target.action, {
+			method: 'POST',
+			body: new FormData(e.target)
+		})
+		
+		let data = await res.json();
+
+		form = data;
+		after_submit(data);
+	}
 </script>
 
 
@@ -138,8 +149,10 @@
 	<!-- upload files-->
 	<form
 		class="flex flex-col justify-center items-center w-full h-auto bg-gray/80 rounded-md shadow-lg p-2 m-1 mb-3 border"
-		action="/"
+		enctype="multipart/form-data"
+		action="/?/submit"
 		method="POST"
+		on:submit|preventDefault={handle_submit}
 	>
 		<input type="hidden" name="group_id" value={data.id} />
 

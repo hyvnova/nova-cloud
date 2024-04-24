@@ -28,7 +28,7 @@ export const actions = {
 		 * * Error handling
 		 * If missing group_name or file, return 400 status code
 		 */
-		if (!group_name) {
+		if (!group_name && !group_id) {
 			return fail(400, { group_name, missing: true });
 		}
 		if (!files) {
@@ -53,13 +53,12 @@ export const actions = {
 		 */
 		let group: GroupType | undefined = undefined; // If defined, will be returned
 		if (!group_id) {
-			group = await create_group(group_name, uploaded_files_meta);
+			group = await create_group(group_name as string, uploaded_files_meta);
 			group_id = group.id;
 
-
-            // For some reason _id is being sent, I give up. 
-            // @ts-ignore 
-            group._id = null;
+			// For some reason _id is being sent, I give up.
+			// @ts-ignore
+			group._id = null;
 		} else {
 			// Add files to group
 			await group_add_files(group_id, uploaded_files_meta);
@@ -70,7 +69,7 @@ export const actions = {
 
 		return {
 			status: 200,
-			body: group || uploaded_files_meta
+			...(group ? { group: group } : { files: uploaded_files_meta })
 		};
 	}
 } satisfies Actions;
