@@ -6,7 +6,7 @@
 	import toast from '$lib/stores/toast';
 	import Edit from '$lib/components/Edit.svelte';
 	import { enhance } from '$app/forms';
-	import { perform_action } from '$lib/index'
+	import { perform_action } from '$lib/index';
 	import Fa from 'svelte-fa';
 	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
@@ -21,7 +21,6 @@
 	// Handle form submission response
 	function after_submit(form: ActionData) {
 		if (!form) return;
-		console.log('form after submit', form);
 
 		uploading.set(false);
 
@@ -31,7 +30,7 @@
 				type: 'error',
 				title: 'Could not upload files to group',
 				duration: 5000,
-				message: 'Make sure all fields are filled properly.'
+				message: form.error || 'Make sure all fields are filled properly.'
 			});
 			return;
 		}
@@ -60,7 +59,6 @@
 		});
 	}
 
-	
 	async function handle_group(action: string, group: GroupType) {
 		switch (action) {
 			case 'rename':
@@ -96,7 +94,7 @@
 	}
 
 	$: if (form) {
-		after_submit(form)
+		after_submit(form);
 	}
 </script>
 

@@ -33,7 +33,7 @@
 				type: 'error',
 				title: 'Could not upload files to group',
 				duration: 5000,
-				message: 'Make sure all fields are filled properly.'
+				message: form.error || 'Make sure all fields are filled properly.'
 			});
 			return;
 		}
@@ -141,7 +141,6 @@
 		action="/?/submit"
 		method="POST"
 		use:enhance={({ formElement }) => {
-			
 			// Reset form after submission
 			formElement.reset();
 

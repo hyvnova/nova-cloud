@@ -35,6 +35,11 @@ export const actions = {
 			return fail(400, { files, missing: true });
 		}
 
+		// If total upload size is bigger than 4.5MB, reject
+		if ((files.reduce((total, file) => total + file.size, 0) / 1024 / 1024) >= 4.5) {
+			return fail(400, { error: "Upload size needs to be less than 4.5MB"})
+		}
+
 		// Upload files to db
 		let uploaded_files_meta: FileMetaType[] = [];
 		for (let file of files) {
