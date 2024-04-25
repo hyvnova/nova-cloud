@@ -69,7 +69,9 @@ export const actions = {
 
 		return {
 			status: 200,
+			group_name,
 			...(group ? { group: group } : { files: uploaded_files_meta })
 		};
 	}
 } satisfies Actions;
+

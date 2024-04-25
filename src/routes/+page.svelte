@@ -5,17 +5,23 @@
 	import Toast from '$lib/components/Toast.svelte';
 	import toast from '$lib/stores/toast';
 	import Edit from '$lib/components/Edit.svelte';
-	import { perform_action } from '$lib/index';
-
+	import { enhance } from '$app/forms';
+	import { perform_action } from '$lib/index'
 	import Fa from 'svelte-fa';
 	import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 	export let data: PageServerData;
-	export let form: ActionData; 
+	export let form: ActionData;
+
+	// Form
+	let input_files = writable<FileList | null>(null);
+	let group_list = writable(data.groups);
+	let uploading = writable(false);
 
 	// Handle form submission response
 	function after_submit(form: ActionData) {
 		if (!form) return;
+		console.log('form after submit', form);
 
 		uploading.set(false);
 
@@ -36,10 +42,15 @@
 		// If a new group was created, add it to the list
 		if (form.group) {
 			group_list.update((list) => {
+				// If group already exists, do nothing
+				if (list.find((g) => g.id === form.group.id)) {
+					return list;
+				}
+				// Else add it
 				list.push(form.group);
 				return list;
 			});
-		} 
+		}
 
 		toast.set({
 			type: 'info',
@@ -49,13 +60,7 @@
 		});
 	}
 
-	// Form
-	let input_files = writable<FileList | null>(null);
-
-	let group_list = writable(data.groups);
-
-	let uploading = writable(false);
-
+	
 	async function handle_group(action: string, group: GroupType) {
 		switch (action) {
 			case 'rename':
@@ -90,20 +95,9 @@
 		}
 	}
 
-	async function handle_submit(e) {
-		uploading.set(true);
-
-		let res = await fetch(e.target.action, {
-			method: 'POST',
-			body: new FormData(e.target)
-		})
-		
-		let data = await res.json();
-
-		form = data;
-		after_submit(data);
+	$: if (form) {
+		after_submit(form)
 	}
-
 </script>
 
 <svelte:head>
@@ -121,7 +115,7 @@
 		action="/?/submit"
 		method="POST"
 		enctype="multipart/form-data"
-		on:submit|preventDefault={handle_submit}
+		use:enhance
 	>
 		{#if form?.missing}
 			<p class="text-red-500">Missing group name or files...</p>

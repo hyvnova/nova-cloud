@@ -11,15 +11,14 @@
 	import { bytesToSize, mimeToExt } from '.';
 	import type { ActionData } from '../../$types';
 	import { goto } from '$app/navigation';
+	import { applyAction, enhance } from '$app/forms';
+	import { page } from '$app/stores';
 
 	export let data: PageServerData;
-	export let form: ActionData;
 
 	let group_name = writable(data.name); // Store to update UI on rename
 	let files = writable(data.files);
-
 	let input_files = writable<FileList | null>(null);
-
 	let uploading = writable(false);
 
 	// Handle form submission response
@@ -83,7 +82,7 @@
 		// If deleting group -> redirect to home
 		if (action === 'group delete') {
 			if (await perform_action('group delete', group_id)) {
-				goto('/')
+				goto('/');
 			}
 		}
 		// If deleting file -> remove from UI
@@ -106,21 +105,10 @@
 		total_size = list.reduce((acc, file) => acc + file.size, 0);
 	});
 
-	async function handle_submit(e) {
-		uploading.set(true);
-
-		let res = await fetch(e.target.action, {
-			method: 'POST',
-			body: new FormData(e.target)
-		})
-		
-		let data = await res.json();
-
-		form = data;
-		after_submit(data);
+	$: if ($page.form) {
+		after_submit($page.form);
 	}
 </script>
-
 
 <svelte:head>
 	<title>{$group_name} - NoVaCloud</title>
@@ -152,7 +140,20 @@
 		enctype="multipart/form-data"
 		action="/?/submit"
 		method="POST"
-		on:submit|preventDefault={handle_submit}
+		use:enhance={({ formElement }) => {
+			
+			// Reset form after submission
+			formElement.reset();
+
+			return async ({ result }) => {
+				// `result` is an `ActionResult` object
+				if (result.type === 'redirect') {
+					goto(result.location);
+				} else {
+					await applyAction(result);
+				}
+			};
+		}}
 	>
 		<input type="hidden" name="group_id" value={data.id} />
 

@@ -4,10 +4,18 @@ import { v4 as uuid } from 'uuid';
 import { delete_file, delete_files, rename_file } from './files';
 let collection = db.collection<GroupType>('groups');
 
+/**
+ * Create a group and upload files to it, if group already exists, upload files to it too.
+ * @param name - Name of the group
+ * @param files - Files to upload to the group (meta), file should be already uploaded to db beforehand using  `upload_file`
+ * @returns GroupType - The group created or existing group
+ */
 export async function create_group(name: string, files: FileMetaType[] = []): Promise<GroupType> {
 	// Check if group already exists
 	let _group: GroupType | null = await collection.findOne({ name }, { projection: { _id: 0 } });
 	if (_group) {
+		// Upload files to group
+		await group_add_files(_group.id, files);
 		return _group;
 	}
 
