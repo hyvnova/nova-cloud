@@ -104,7 +104,7 @@
 	<meta name="keywords" content="NoVaCloud, upload, files, share, cloud" />
 </svelte:head>
 
-<main class="flex flex-col justify-center items-center w-auto p-4">
+<main class="flex flex-col justify-center items-center w-auto p-4" data-theme="dark">
 	<Toast />
 
 	<!-- upload files-->

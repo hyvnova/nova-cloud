@@ -1,11 +1,10 @@
 <script>
-	import '@picocss/pico/css/pico.css';
+	import '@picocss/pico/css/pico.slim.min.css';
 	import '../app.css';
 
 
 	import { fly } from 'svelte/transition';
 	import { cubicIn, cubicOut } from 'svelte/easing';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
 
 	export let data;
 
